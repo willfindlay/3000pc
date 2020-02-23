@@ -1,4 +1,4 @@
-/* 3000fifo-pc.c  More complex producer-consumer using mmap shared memory and pthread_cond_wait
+/* 3000rendezvous-pc.c  More complex producer-consumer using mmap shared memory and pthread_cond_wait
  * Original Version Copyright (C) 2017  Anil Somayaji
  * Modified Version Copyright (C) 2020  William Findlay
  *
