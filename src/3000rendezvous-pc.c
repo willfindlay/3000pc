@@ -101,7 +101,7 @@ void pick_word(char *word)
 {
         unsigned int pick;
 
-        /*  */
+        /* Open /dev/urandom for reading */
         int fd = open("/dev/urandom", O_RDONLY);
         if (fd < 0)
         {

@@ -1,0 +1,36 @@
+Getting Started
+===============
+
+1. Run make to compile 3000fifo-pc and 3000rendezvous-pc.
+2. Note that these programs take 3 arguments each:
+    a) The number of events to process
+    b) The number of events to produce before the producer sleeps for 1 second
+    c) The number of events to consume before the consumer sleeps for 1 second
+3. Run both programs with the same arguments of your choice. Do this a few times. Do they behave the same way? Do you notice any differences?
+
+3000fifo-pc
+===========
+
+1. Examine the source code of 3000fifo-pc. Explain the following:
+    a) What does the call to pipe(pipefd) on line 192 do? Hint: Look at the manpage for pipe(2)
+    b) How does the consumer receive words to consume?
+    c) How does the producer send words to the consumer?
+    d) Why is the call to srandom(time(NULL)) on line 169 necessary?
+2. Replace the call to srandom(time(NULL)) on line 169 with srandom(42). What differences do you notice in 3000fifo-pc's behavior?
+3. What descriptors are opened by 3000fifo-pc. What are they for and what files do the point to? How did you find this information? Hint: Try checking in /proc.
+4. What do you think would happen if you had multiple producers and multiple consumers in 3000fifo-pc? Would things break or work normally?
+5. (Advanced) Implement multiple producers and consumers in 3000fifo-pc. Compare your results with your answer to question 4.
+
+3000rendezvous-pc
+=================
+
+1. Examine the source code of 3000rendezvous-pc. Explain the following:
+    a) What are a few ways that 3000rendezvous-pc is different than 3000fifo-pc?
+    b) What does the call to mmap on line 335 do? How did you figure this out?
+    c) How does the producer notify the consumer that the queue is no longer empty?
+    d) How does the consumer notify the producer that the queue is no longer full?
+2. What arguments can you provide to make the producer wait for the consumer? Hint: Check the size of the queue.
+3. What arguments can you provide to make the consumer wait for the producer?
+4. Another student tells you that the differences between processes and threads is that processes never share memory, while threads do. Is this statement correct or incorrect? How can the behavior of 3000rendezvous-pc help justify your answer?
+5. Change the calls to pthread_mutexattr_setpshared and pthread_condattr_setpshared to take 0 instead of 1. How does the behavior or 3000rendezvous-pc change? Does anything break? Demonstrate this using your answers to question 2 and question 3.
+6. (Advanced) Implement multiple producers and consumers in 3000rendezvous-pc. Compare your results to what you did in 3000fifo-pc.
