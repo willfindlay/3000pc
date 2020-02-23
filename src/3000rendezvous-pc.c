@@ -21,11 +21,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <sys/mman.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <time.h>
@@ -98,11 +100,26 @@ void usage_exit(char *progname)
 
 void pick_word(char *word)
 {
-        int pick;
+        unsigned int pick;
 
-        pick = random() % wordlist_size;
+        /*  */
+        int fd = open("/dev/urandom", O_RDONLY);
+        if (fd < 0)
+        {
+                fprintf(stderr, "Error: Unable to open /dev/urandom for reading: %s\n", strerror(errno));
+                pick = 0;
+        }
+        else if (read(fd, (void *)&pick, sizeof(pick)) == -1)
+        {
+                fprintf(stderr, "Error: Unable to read from /dev/urandom: %s\n",strerror(errno));
+                pick = 0;
+        }
+
+        pick = pick % wordlist_size;
 
         strcpy(word, wordlist[pick]);
+
+        close(fd);
 }
 
 void wait_for_producer(shared *s)
@@ -297,8 +314,6 @@ int main(int argc, char *argv[])
         int pid, count, prod_interval, con_interval;
 
         shared *s;
-
-        srandom(42);
 
         if (argc < 4)
         {
