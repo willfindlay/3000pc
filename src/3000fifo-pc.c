@@ -11,11 +11,6 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <semaphore.h>
-#include <string.h>
-#include <time.h>
 
 #define QUEUESIZE 32
 #define WORDSIZE 16
@@ -80,32 +75,24 @@ void output_word(int c, char *w)
 
 int queue_word(char *word, int pipefd_write)
 {
-        int retval = 0;
-
         if (write(pipefd_write, word, WORDSIZE) == -1)
         {
                 fprintf(stderr, "Error: Unable to write to pipe: %s\n", strerror(errno));
-                retval = -1;
-                goto done;
+                return -1;
         }
 
- done:
-        return retval;
+        return 0;
 }
 
 int get_next_word(char *word, int pipefd_read)
 {
-        int retval = 0;
-
         if (read(pipefd_read, word, WORDSIZE) == -1)
         {
                 fprintf(stderr, "Error: Unable to read from pipe: %s\n", strerror(errno));
-                retval = -1;
-                goto done;
+                return -1;
         }
 
- done:
-        return retval;
+        return 0;
 }
 
 void producer(int event_count, int pipefd_write, int prod_interval)
@@ -171,6 +158,9 @@ int main(int argc, char *argv[])
         prod_interval = atoi(argv[2]);
         con_interval = atoi(argv[3]);
 
+        /* Open a fifo
+         * pipefd[0] will be open for reading, and
+         * pipefd[1] will be open for writing */
         if (pipe(pipefd))
         {
                 fprintf(stderr, "Error: Unable to open pipe: %s\n", strerror(errno));

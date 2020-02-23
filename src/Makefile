@@ -1,6 +1,6 @@
 CC       = gcc
 
-CFLAGS   = -O3 -Wall -Wextra -Wstrict-aliasing
+CFLAGS   = -O2 -Wall
 LDFLAGS   = -pthread
 
 SRC      = $(wildcard *.c)
@@ -9,7 +9,7 @@ EXEC     = $(SRC:.c=)
 all: $(EXEC)
 
 $(EXEC): $(SRC)
-	$(CC) -o $@ $< $(CFLAGS) $(LDFLAGS)
+	$(CC) -o $@ $@.c $(CFLAGS) $(LDFLAGS)
 
 .PHONY: clean mrproper
 
