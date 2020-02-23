@@ -113,11 +113,16 @@ void producer(int event_count, int pipefd_write, int prod_interval)
         char word[WORDSIZE];
         int i;
 
-        for (i=0; i < event_count; i++) {
+        for (i=0; i < event_count; i++)
+        {
                 pick_word(word);
                 queue_word(word, pipefd_write);
+
+                /* Don't sleep if interval <= 0 */
+                if (prod_interval <= 0)
+                        continue;
                 /* Sleep if we hit our interval */
-                if (i % prod_interval == 0 && i > 0)
+                if (prod_interval > 0 && i % prod_interval == 0)
                 {
                         fprintf(stderr, "Producer sleeping for 1 second...\n");
                         sleep(1);
@@ -134,11 +139,16 @@ void consumer(int event_count, int pipefd_read, int con_interval)
         char word[WORDSIZE];
         int i;
 
-        for (i=0; i < event_count; i++) {
+        for (i=0; i < event_count; i++)
+        {
                 get_next_word(word, pipefd_read);
                 output_word(i, word);
+
+                /* Don't sleep if interval <= 0 */
+                if (con_interval <= 0)
+                        continue;
                 /* Sleep if we hit our interval */
-                if (i % con_interval == 0 && i > 0)
+                if (con_interval > 0 && i % con_interval == 0)
                 {
                         fprintf(stderr, "Consumer sleeping for 1 second...\n");
                         sleep(1);
@@ -157,11 +167,15 @@ int main(int argc, char *argv[])
 
         srandom(42);
 
-        if (argc < 4) {
-                if (argc < 1) {
+        if (argc < 4)
+        {
+                if (argc < 1)
+                {
                         report_error("no command line");
                         usage_exit(argv[0]);
-                } else {
+                }
+                else
+                {
                         report_error("Not enough arguments");
                         usage_exit(argv[0]);
                 }
@@ -182,11 +196,14 @@ int main(int argc, char *argv[])
 
         pid = fork();
 
-        if (pid) {
-                /* producer */
+        if (pid)
+        {
+                /* Producer */
                 producer(count, pipefd[1], prod_interval);
-        } else {
-                /* consumer */
+        }
+        else
+        {
+                /* Consumer */
                 consumer(count, pipefd[0], con_interval);
         }
 
