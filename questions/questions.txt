@@ -7,6 +7,7 @@ Getting Started
     b) The number of events to produce before the producer sleeps for 1 second
     c) The number of events to consume before the consumer sleeps for 1 second
 3. Run both programs with the same arguments of your choice. Do this a few times. Do they behave the same way? Do you notice any differences?
+4. Repeat the above experiment, this time running each program under strace (with the -f flag to trace children too). Do you notice any difference in the system calls each program makes?
 
 3000fifo-pc
 ===========
@@ -31,7 +32,7 @@ Getting Started
     d) How does the consumer notify the producer that the queue is no longer full?
 2. What arguments can you provide to make the producer wait for the consumer? Hint: Check the size of the queue.
 3. What arguments can you provide to make the consumer wait for the producer?
-4. Another student tells you that the differences between processes and threads is that processes never share memory, while threads do. Is this statement correct or incorrect? How can the behavior of 3000rendezvous-pc help justify your answer?
+4. Another student tells you that the difference between processes and threads is that processes never share memory, while threads do. Is this statement correct or incorrect? How can the behavior of 3000rendezvous-pc help justify your answer?
 5. Note that 3000rendezvous-pc uses /dev/urandom to pick its words instead of the C library's random functions. How do these two methods differ? You may wish to look at man urandom(4).
 6. Change the calls to pthread_mutexattr_setpshared and pthread_condattr_setpshared to take 0 instead of 1. How does the behavior or 3000rendezvous-pc change? Does anything break? Demonstrate this using your answers to question 2 and question 3.
 7. (Advanced) Implement multiple producers and consumers in 3000rendezvous-pc. Compare your results to what you did in 3000fifo-pc.
