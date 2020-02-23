@@ -26,7 +26,7 @@ Getting Started
 =================
 
 1. Examine the source code of 3000rendezvous-pc. Explain the following:
-    a) What are a few ways that 3000rendezvous-pc is different than 3000fifo-pc?
+    a) What are a few ways that 3000rendezvous-pc is different from 3000fifo-pc?
     b) What does the call to mmap on line 335 do? How did you figure this out?
     c) How does the producer notify the consumer that the queue is no longer empty?
     d) How does the consumer notify the producer that the queue is no longer full?
