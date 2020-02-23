@@ -1,4 +1,4 @@
-/* 3000fifo-pc.c  Simple producer consumer with a fifo
+/* 3000fifo-pc.c  Simple producer-consumer with a fifo
  * Original Version Copyright (C) 2017  Anil Somayaji
  * Modified Version Copyright (C) 2020  William Findlay
  *
@@ -24,6 +24,7 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
 
 #define QUEUESIZE 32
 #define WORDSIZE 16
@@ -165,7 +166,7 @@ int main(int argc, char *argv[])
         int pid, count, prod_interval, con_interval;
         int pipefd[2];
 
-        srandom(42);
+        srandom(time(NULL));
 
         if (argc < 4)
         {
