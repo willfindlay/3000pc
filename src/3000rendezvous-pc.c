@@ -67,7 +67,6 @@ const char *wordlist[] = {
 
 typedef struct entry {
         char word[WORDSIZE];
-        sem_t lock;
 } entry;
 
 typedef struct shared {
@@ -77,8 +76,6 @@ typedef struct shared {
         entry queue[QUEUESIZE];
         int last_produced;
         int last_consumed;
-        pid_t prod_pid;
-        pid_t con_pid;
         int prod_count;
         int con_count;
 } shared;
@@ -123,18 +120,14 @@ void pick_word(char *word)
 
 void wait_for_producer(shared *s)
 {
-        pthread_mutex_lock(&s->cond_mutex);
         fprintf(stderr, "Waiting for producer...\n");
         pthread_cond_wait(&s->queue_nonempty, &s->cond_mutex);
-        pthread_mutex_unlock(&s->cond_mutex);
 }
 
 void wait_for_consumer(shared *s)
 {
-        pthread_mutex_lock(&s->cond_mutex);
         fprintf(stderr, "Waiting for consumer...\n");
         pthread_cond_wait(&s->queue_nonfull, &s->cond_mutex);
-        pthread_mutex_unlock(&s->cond_mutex);
 }
 
 void output_word(int c, char *w)
@@ -144,6 +137,7 @@ void output_word(int c, char *w)
 
 int queue_word(char *word, shared *s)
 {
+        pthread_mutex_lock(&s->cond_mutex);
         entry *e;
         int current, retval;
 
@@ -151,14 +145,10 @@ int queue_word(char *word, shared *s)
 
         e = &s->queue[current];
 
-        sem_wait(&e->lock);
-
         if (e->word[0] != '\0')
         {
                 /* consumer hasn't consumed this entry yet */
-                sem_post(&e->lock);
                 wait_for_consumer(s);
-                sem_wait(&e->lock);
         }
 
         if (e->word[0] != '\0')
@@ -172,19 +162,19 @@ int queue_word(char *word, shared *s)
                 strncpy(e->word, word, WORDSIZE);
                 s->last_produced = current;
                 s->prod_count++;
-                /* Notify that queue is nonempty */
-                pthread_cond_signal(&s->queue_nonempty);
                 retval = 0;
                 goto done;
         }
 
  done:
-        sem_post(&e->lock);
+        pthread_cond_broadcast(&s->queue_nonempty);
+        pthread_mutex_unlock(&s->cond_mutex);
         return retval;
 }
 
 int get_next_word(char *word, shared *s)
 {
+        pthread_mutex_lock(&s->cond_mutex);
         entry *e;
         int current, retval;
 
@@ -192,14 +182,10 @@ int get_next_word(char *word, shared *s)
 
         e = &s->queue[current];
 
-        sem_wait(&e->lock);
-
         if (e->word[0] == '\0')
         {
                 /* producer hasn't filled in this entry yet */
-                sem_post(&e->lock);
                 wait_for_producer(s);
-                sem_wait(&e->lock);
         }
 
         if (e->word[0] == '\0')
@@ -214,14 +200,13 @@ int get_next_word(char *word, shared *s)
                 e->word[0] = '\0';
                 s->last_consumed = current;
                 s->con_count++;
-                /* Notify that queue is nonfull */
-                pthread_cond_signal(&s->queue_nonfull);
                 retval = 0;
                 goto done;
         }
 
  done:
-        sem_post(&e->lock);
+        pthread_cond_broadcast(&s->queue_nonfull);
+        pthread_mutex_unlock(&s->cond_mutex);
         return retval;
 }
 
@@ -293,18 +278,12 @@ void init_shared(shared *s)
         s->last_consumed = -1;
         s->last_produced = -1;
 
-        s->prod_pid = -1;
-        s->con_pid  = -1;
-
         s->prod_count = 0;
         s->con_count  = 0;
 
         for (i=0; i<QUEUESIZE; i++)
         {
                 s->queue[i].word[0] = '\0';
-                /* semaphore is shared between processes,
-                   and initial value is 1 (unlocked) */
-                sem_init(&s->queue[i].lock, 1, 1);
         }
 }
 
@@ -349,12 +328,10 @@ int main(int argc, char *argv[])
         if (pid)
         {
                 /* Producer */
-                s->prod_pid = getpid();
                 producer(s, count, prod_interval);
         } else
         {
                 /* Consumer */
-                s->con_pid = getpid();
                 consumer(s, count, con_interval);
         }
 
